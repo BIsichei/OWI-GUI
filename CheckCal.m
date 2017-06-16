@@ -1,10 +1,8 @@
 function result = CheckCal(SetArray)
-    % CHECK IF ALL PINS HAVE BEEN CALIBRATED    
-    result = 1;
-    for val = 1:5
-        if ~(strcmp(SetArray(val,1),'Set')&&strcmp(SetArray(val,2),'Set'))
-            result = 0;
-            break
-        end
+    % CHECK IF ALL PINS HAVE BEEN CALIBRATED
+    if  ([SetArray.Min(1:5).Set] & [SetArray.Max(1:5).Set])
+        result = 1;
+    else
+        result = 0;
     end
 end

@@ -10,9 +10,9 @@ function result = ImproperPinValues(Display,Apin,Neg,Pos)
     elseif A == 2 || N == 2  || P == 2 
         Status(Display,'Only integers allowed');
     else
-        Pins = zeros(5,3);
-        for i = 1:5
-            Pins(i,:) = [eval(Apin(i).String) eval(Neg(i).String) eval(Pos(i).String)];
+        Pins = zeros(numel(Apin),3);
+        for i = 1:numel(Apin)
+            Pins(i,:) = [eval(Apin{i}) eval(Neg{i}) eval(Pos{i})];
         end
         % make sure pins are within the right range
         if OutofRange(Pins)
