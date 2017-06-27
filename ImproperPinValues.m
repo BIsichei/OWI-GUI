@@ -1,34 +1,33 @@
-function result = ImproperPinValues(Display,Apin,Neg,Pos)
+function result = ImproperPinValues(Display,Apin,En,Dir)
     % CHECK FOR LEGAL PIN VALUES
     result = 1;    
     % check for empty and non integer entries
-    A = EmptyEntries(Apin);
-    N = EmptyEntries(Neg);
-    P = EmptyEntries(Pos);
-    if A == 1 || N == 1  || P == 1 
-        Status(Display,'Please input all Values');
-    elseif A == 2 || N == 2  || P == 2 
-        Status(Display,'Only integers allowed');
+    if EmptyEntries(Apin) 
+        Status(Display,'Please Check analog Pins for omitted inputs,');
+        Status(Display,'and for non-integer inputs');
+    elseif EmptyEntries(En)
+        Status(Display,'Please Check Enable Pins for omitted inputs,');
+        Status(Display,'and for non-integer inputs');
+    elseif EmptyEntries(Dir)
+        Status(Display,'Please Check Direction Pins for omitted inputs,');
+        Status(Display,'and non-integer inputs');
     else
-        Pins = zeros(numel(Apin),3);
         for i = 1:numel(Apin)
-            Pins(i,:) = [eval(Apin{i}) eval(Neg{i}) eval(Pos{i})];
+            APins(i) = eval(Apin{i});
+            EPins(i) = eval(En{i});
+            DPins(i) = eval(Dir{i});
         end
-        % make sure pins are within the right range
-        if OutofRange(Pins)
-            error = OutofRange;
-            if error == 1
-                Status(Display,'An analog input pin is out of range');
-            elseif error == 2
-                Status(Display,'A negative output pin is out of range');
-            else
-                Status(Display,'A positive output pin is out of range');
-            end
+        EPins(6) = eval(En{6});
         % make sure pins are not repeated
-        elseif RepeatedEntries(Pins(:,1))
+        if RepeatedEntries(APins)
             Status(Display,'Repeated analog input pin');
-        elseif RepeatedEntries(Pins(:,2:3))
+        elseif RepeatedEntries([EPins,DPins])
             Status(Display,'Repeated digital output pin');
+        % make sure pins are within the right range
+        elseif OutofRange(APins,'A')
+            Status(Display,'An analog input pin is out of range');
+        elseif OutofRange([EPins,DPins],'D')
+            Status(Display,'A Digital output pin is out of range');
         else
             result = 0;
         end

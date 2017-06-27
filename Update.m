@@ -1,11 +1,11 @@
 function Update(Data)
     %UPDATE THE FIGURE    
     for i = 1:size(Data.input,1) %for every arm but the gripper, update the transforms
-        Data.DH(i,:) = [Data.input(i,1), Data.input(i,2), Data.input(i,3), -Data.Slide(i).Value];
+        DH(i,:) = [Data.input(i,1), Data.input(i,2), Data.input(i,3), -Data.Slide(i).Value];
         if i == 1
-            Data.HGTrans(i).Matrix  = Htrans(Data.DH(i,:));
+            Data.HGTrans(i).Matrix  = Htrans(DH(i,:));
         else
-            Data.HGTrans(i).Matrix  = Data.HGTrans(i-1).Matrix * Htrans(Data.DH(i,:));
+            Data.HGTrans(i).Matrix  = Data.HGTrans(i-1).Matrix * Htrans(DH(i,:));
         end
     end
     %gripper transforms
