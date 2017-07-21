@@ -12,16 +12,10 @@ function result = ImproperPinValues(Display,Apin,En,Dir)
         Status(Display,'Please Check Direction Pins for omitted inputs,');
         Status(Display,'and non-integer inputs');
     else
-<<<<<<< HEAD
         for i = 1:numel(Apin)
             APins(i) = eval(Apin{i});
             EPins(i) = eval(En{i});
             DPins(i) = eval(Dir{i});
-=======
-        Pins = zeros(numel(Apin),3);
-        for i = 1:numel(Apin)
-            Pins(i,:) = [eval(Apin{i}) eval(Neg{i}) eval(Pos{i})];
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
         end
         EPins(6) = eval(En{6});
         % make sure pins are not repeated

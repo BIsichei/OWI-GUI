@@ -27,14 +27,8 @@ an index value of 1 typically corresponds to a parameter related to M5,
 while an index of 5 corresponts to one of M1.
     
     
-<<<<<<< HEAD
     TODO:
     Move function
-=======
-    TODO
-    Move function
-    Calibrate procedure
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
     Save and Load
 %}
 
@@ -67,13 +61,10 @@ view(-150,30);
 rotate3d on;
 dim = 'xyz';
 ArduinoDetected = nargin;
-tolerance = 0.075; %volts
-<<<<<<< HEAD
+tolerance = 0.2; %volts
 saveindex = 1;
 Active = 1;
 
-=======
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
 File = struct; % temp data storage for saving and loading
 Data = struct;
 Pins = struct;
@@ -95,7 +86,6 @@ Pins.Default = [     0     5     4;
      4     13    12;
      0     1     0];
 Pins.Set = 0;
-<<<<<<< HEAD
 for j = 1:5
     Pins.Ana(j) = NaN;
     Pins.En(j) = NaN;
@@ -107,18 +97,10 @@ for j = 1:5
 end
 Program.Config = {};
 
-=======
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
 Data.Stop = uicontrol('Position',[662.5,125,70,80],'String','STOP',...
     'BackgroundColor',[.8 .3 .3],'Callback',@Stop);
 Data.RevUpdate = uicontrol('String','UpdatePlot',...
     'Callback',@PlotUpdate_Callback);
-<<<<<<< HEAD
-=======
-Program.Config = {};
-saveindex = 1;
-Active = 1;
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
 
 %% VIEW TAB SETUP
 ViewSettings = uipanel(ViewTab,'Units','Pixels','Position',[10,230,155,105],...
@@ -133,7 +115,6 @@ RemoteSettings = uipanel(ViewTab,'Units','Pixels','Position',[2 345 26 130]);
 %VIEWTAB CHILDREN
 base = 350; %base y value for sliders
 for j = 1:5
-<<<<<<< HEAD
     Data.SlideReset(j) = uicontrol(ViewTab,'UserData',j,...
         'Position',[32,base+30*(j-1)+10,20,12],'Callback',@ResetArms_Callback,...
         'String',strcat('M',num2str(6-j)),'TooltipString','Reset this joint');
@@ -157,32 +138,6 @@ for j = 1:5
     align([Data.SlideText(j) Data.Slide(j) Data.Upload(j)],'None','Middle');
     align([Data.PowerText(j) Data.Upload(j)],'Right','Fixed',1);
     align([Data.PowerSlide(j) Data.PowerText(j)],'None','Top');
-=======
-    Data.SlideLabel(j) = uicontrol(ViewTab,'String',strcat('M',num2str(6-j)),...
-        'Position',[32,b+30*(j-1)+10,20,12],...
-        'TooltipString','Reset this joint','Callback',@ResetArms_Callback,...
-        'UserData',j,'BackgroundColor',[.90 .90 .90]);
-    Data.SlideText(j) = uicontrol(ViewTab,'Style','edit',...
-        'Position',[32,b+30*(j-1)-2,20,14],...
-        'Callback',@SlideText_Callback,'UserData',j,'String',0);    
-    align([Data.SlideText(j) Data.SlideLabel(j)],'left','Fixed',1);
-    Data.Slide(j) =  uicontrol(ViewTab,'Style','slider',...
-        'Position',[55,b+30*(j-1),200,10],'Callback',@Slide_Callback,...
-        'Min', Data.ArmLimits(j,1),'Max',Data.ArmLimits(j,2),...
-        'String', 'R','Value',0,'UserData',j);
-    Data.Upload(j) = uicontrol(ViewTab,...
-        'position',[258,b+30*(j-1)-2,14,14],'String','>',...
-        'Callback',@Upload_Callback,...
-        'FontWeight','bold','FontSize',12,'UserData',j,...
-        'TooltipString','Upload to board');
-    Pins.Ana(j) = NaN;
-    Pins.En(j) = NaN;
-    Pins.Dir(j) = NaN;
-    Pins.Pot.Min(j).Value = NaN;
-    Pins.Pot.Min(j).Set = 0;
-    Pins.Pot.Max(j).Value = NaN;
-    Pins.Pot.Max(j).Set = 0;
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
 end
 for j = 1:size(Data.input,1)
     Data.HGTrans(j) = hgtransform(Axes1);
@@ -321,15 +276,14 @@ for j = 1:5
     align ([Settings.Pin.ALabel(j) Settings.Pin.APin(j) Settings.Pin.En(j) ...
         Settings.Pin.Dir(j) Settings.Pin.Label(j)], 'Fixed',1,'Middle');    
 end
-Settings.Pin.Label(6) = uicontrol(PinSettings,'Style','text','UserData',6,...
+Settings.Pin.LightLabel = uicontrol(PinSettings,'Style','text','UserData',6,...
         'Position',[5,base+offset*(5),45,15],'HorizontalAlignment','Left',...
         'String','Light Pin');
-Settings.Pin.En(6) = uicontrol(PinSettings,'Style','edit','UserData',6,...
-        'Position',[36,base+offset*(5),20,15]);
-    
+Settings.Pin.Light = uicontrol(PinSettings,'Style','edit','UserData',6,...
+        'Position',[36,base+offset*(5),20,15]);    
 align([Settings.Pin.EnableLabel Settings.Pin.Label(5)],'Fixed',2,'Fixed',1);
 align([Settings.Pin.DirectionLabel Settings.Pin.EnableLabel],'Fixed',2,'Middle');
-align([Settings.Pin.Label(6) Settings.Pin.En(6)],'Fixed',1,'Bottom');
+align([Settings.Pin.LightLabel Settings.Pin.Light],'Fixed',1,'Bottom');
 
 Settings.Pin.Set = uicontrol(PinSettings,'String','Apply All Values',...
     'Position',[5,3,260,20],'Callback', @SetPin_Callback);    
@@ -468,13 +422,8 @@ f.Visible = 'on'; %show the figure
 
 for j = 1:5
     Settings.Pin.APin(j).String = Pins.Default(j,1);
-<<<<<<< HEAD
     Settings.Pin.En(j).String = Pins.Default(j,2);
     Settings.Pin.Dir(j).String = Pins.Default(j,3);
-=======
-    Settings.Pin.Neg(j).String = Pins.Default(j,2);
-    Settings.Pin.Pos(j).String = Pins.Default(j,3);
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
     Data.SlideText(j).FontUnits = 'points';
     Data.PowerText(j).FontUnits = 'points';
 end
@@ -546,7 +495,6 @@ end
     %%Opens the Calibration Menu for the selected Motor
     function CalButton_Callback(source,~)
         %Called by Settings.Cal.Button in the CalSettings uipanel
-<<<<<<< HEAD
         val = source.UserData;
         if ~(Pins.Pot.Min(val).Set && Pins.Pot.Max(val).Set)
             Pins.Pot.Min(val).Set = 0;
@@ -561,25 +509,6 @@ end
             Settings.StatusDisplay.String = iscalibrated;
             Settings.Cal.Reading.String = analogRead(Arduino,Pins.Ana(val));
             Settings.Cal.Orient.Visible = 'off';
-=======
-        val = str2double(source.UserData);
-        if strcmp(TabGroup.SelectedTab.Title,'Arduino')&& Pins.Set
-            if ~(Pins.Pot.Min(val).Set && Pins.Pot.Max(val).Set)
-                Pins.Pot.Min(val).Set = 0;
-                Pins.Pot.Max(val).Set = 1;
-                Settings.StatusDisplay.String = strcat('Click Orient to Start Calibrating M',num2str(6-val));
-                Settings.Cal.Reading.String = '--';
-                Settings.Cal.Set.Visible = 'off';
-                Settings.Cal.Next.Visible = 'off';
-                Settings.Cal.Orient.Visible = 'on';
-            else
-                iscalibrated = strcat('M',num2str(6-val),' has been calibrated already. click Reset to recalibrate, or select a different Motor to calibrate');
-                Settings.StatusDisplay.String = iscalibrated;
-                Settings.Cal.Reading.String = Pins.Pot.Max(val).Value;
-                Settings.Cal.Next.Visible = 'on';
-                Settings.Cal.Orient.Visible = 'off';
-            end
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
         end
     end
     
@@ -592,37 +521,20 @@ end
             Pins.Pot.Min(val).Value = analogRead(Arduino,Pins.Ana(val));
             Pins.Pot.Min(val).Set = 1;
             Settings.Cal.Reading.String = Pins.Pot.Min(val).Value;
-<<<<<<< HEAD
             Settings.StatusDisplay.String = strcat(Motor,' Min has been Set, Click Orient to proceed');
         elseif ~Pins.Pot.Max(val).Set
             Pins.Pot.Max(val).Value = analogRead(Arduino,Pins.Ana(val));
             Pins.Pot.Max(val).Set = 1;
             Settings.Cal.Reading.String = Pins.Pot.Max(val).Value;
-            Settings.StatusDisplay.String = strcat(Motor,' Max been calibrated. Click Reset to recalibrate ',Motor,', or select a different Motor to calibrate');
-=======
-            Settings.StatusDisplay.String = strcat(Motor,' Min has been Set, Click Next to proceed');
-            Settings.Cal.Next.String = 'Next >>';
-            Settings.Cal.Next.Visible = 'on';
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
+            Settings.StatusDisplay.String = strcat(Motor,' Max been calibrated. Click Reset to recalibrate?',Motor,', or select a different Motor to calibrate');
             Settings.Cal.Orient.Visible = 'off';
             source.String = 'Reset';
         else
-<<<<<<< HEAD
             Pins.Pot.Min(val).Set = 0;
             Pins.Pot.Max(val).Set = 0;
             source.String = 'Set';
             Settings.Cal.Orient.Visible = 'on';
             Settings.StatusDisplay.String = strcat('Click Orient to begin calibration');
-=======
-            Pins.Pot.Max(val).Value = analogRead(Arduino,Pins.Ana(val));
-            Pins.Pot.Max(val).Set = 1;
-            Settings.Cal.Reading.String = Pins.Pot.Max(val).Value;
-            Settings.StatusDisplay.String = strcat(Motor,' Max been calibrated. Click Reset to recalibrate ',Motor,' Min, or select a different Motor to calibrate');
-            Settings.Cal.Next.String = 'Reset';
-            Settings.Cal.Next.Visible = 'on';
-            Settings.Cal.Orient.Visible = 'off';
-            source.Visible = 'off';
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
         end
     end       
 
@@ -631,18 +543,15 @@ end
         switch source.Parent.Title
             case 'Pin Settings'
                 uiopen('Settings/Pins.mat');
-                if numel(File) == 2
+                if numel(File) == 3
                     for i = 1:5
                         Settings.Pin.APin(i).String = File{1}.Ana(i);
-<<<<<<< HEAD
                         Settings.Pin.En(i).String = File{1}.En(i);
                         Settings.Pin.Dir(i).String = File{1}.Dir(i);
-=======
-                        Settings.Pin.Neg(i).String = File{1}.En(i);
-                        Settings.Pin.Pos(i).String = File{1}.Dir(i);
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
+                        
                     end
-                    Settings.Pin.High.Value = File{2};
+                    Settings.Pin.Light.String = File{2};
+                    Settings.Pin.High.Value = File{3};
                     Settings.Pin.Low.Value = ~Settings.Pin.High.Value;
                     File = [];
                     Settings.StatusDisplay.String = 'Pin info loaded';
@@ -665,7 +574,7 @@ end
                     Program.Config = {Program.Config{:,:}, File{:,:}};
                     File = [];
                     for i = 1:size(Program.Config,2)
-                        Program.List.String{i} = strcat('Config ',num2str(i));
+                        Program.List.String{i} = strcat('Config?',num2str(i));
                     end
                     saveindex = size(Program.Config,2)+1;
                 else
@@ -673,40 +582,12 @@ end
                 end
         end
     end
-<<<<<<< HEAD
     
     %%Shows the end user the proper orientation required to calibrate
     %the robot's physical readings
     function Orientation_Callback(~,~)
         %Called by Settings.Cal.Orient on the CalSettings uipanel
         val = CalSettings.SelectedObject.UserData;
-=======
-
-%%Swtiches to calibrate the next value, or reset the previous value
-    function NextButton_Callback(source,~)
-        %Called by Settings.Cal.Next on the CalSettings uipanel
-        val = str2double(CalSettings.SelectedObject.UserData);
-        if Pins.Pot.Min(val).Set && ~Pins.Pot.Max(val).Set
-            Settings.StatusDisplay.String = 'Click Orient';
-            Settings.Cal.Reading.String = '--';
-            source.Visible = 'off';
-            Settings.Cal.Orient.Visible = 'on';
-        else
-            Pins.Pot.Min(val).Set = 0;
-            Pins.Pot.Max(val).Set = 0;
-            Settings.StatusDisplay.String = 'Values reset, Click Orient';
-            Settings.Cal.Reading.String = '--';
-            source.Visible = 'off';
-            Settings.Cal.Orient.Visible = 'on';
-        end
-    end
-
-%%Shows the end user the proper orientation required to calibrate
-%the robot's physical readings
-    function Orientation_Callback(~,~)
-        %Called by Settings.Cal.Orient on the CalSettings uipanel
-        val = str2double(CalSettings.SelectedObject.UserData);
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
         if Pins.Set
             switch val
                 case 1
@@ -768,11 +649,7 @@ end
     %%Updates the plot with the physical robot's current orientation
     function PlotUpdate_Callback(~,~)
         %called by Data.UpdatePlot in the Main Figure
-<<<<<<< HEAD
         if  CheckCal(Pins.Pot)
-=======
-        if  CheckCal(Pins.Pot) 
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
             Config(GetRobotConfig(Arduino,Pins,Data.ArmLimits,Data.Slide,Data.Radians));
         else
             Settings.StatusDisplay.String = 'Can''t Update plot yet';
@@ -781,7 +658,8 @@ end
     end
     
     %%Changes the arm Movement power
-    function PowerText_Callback(~,~)
+    function PowerText_Callback(source,~)
+        Data.PowerSlide(source.UserData).Value = str2double(source.String);        
     end
     
     %%Callback for displaying a motion Config
@@ -821,14 +699,14 @@ end
         if strcmp(source.Tag,'Append')
             Program.Config{saveindex} = GetPlotConfig(Data.Slide,Data.Radians);
             Settings.StatusDisplay.String = Program.Config{saveindex};
-            Status(Settings.StatusDisplay,strcat('Config ',num2str(saveindex),' saved'));
-            Program.List.String{saveindex} = strcat('Config ',num2str(saveindex));
+            Status(Settings.StatusDisplay,strcat('Config?',num2str(saveindex),'?saved'));
+            Program.List.String{saveindex} = strcat('Config?',num2str(saveindex));
             saveindex = saveindex + 1;
         elseif strcmp(source.Tag,'Delete')&& saveindex>2
             saveindex = saveindex -1;
             Config(Program.Config{saveindex-1});
             Program.List.String{saveindex} = [];
-            Settings.StatusDisplay.String = strcat('Config ',num2str(saveindex),' deleted');
+            Settings.StatusDisplay.String = strcat('Config?',num2str(saveindex),'?deleted');
         else
             saveindex = 1;
             Program.Config = {};
@@ -854,11 +732,7 @@ end
     
     %Informs the user what buttons move the selected motor
     function Remote_Callback(source,~)
-<<<<<<< HEAD
         %called by Settings.Remote<> in the RemoteSettings uipanel
-=======
-        %called by Settings.Remote.Origin<> in the RemoteSettings uipanel
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
         if Pins.Set
             switch source.String
                 case 'M5'
@@ -873,11 +747,7 @@ end
     
     %Moves the robot arm using keyboard input based on the motor selected
     function RemoteKeyPress_Callback(~,event)
-<<<<<<< HEAD
         %Called by Settings.Remote<> in the RemoteSettings uipanel
-=======
-        %Called by Settings.Remote.Origin<> in the RemoteSettings uipanel
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
         if Pins.Set
             if strcmp(event.Source.String,'M5')
                 options = {'rightarrow','leftarrow'};
@@ -887,11 +757,7 @@ end
                 options = {'uparrow','downarrow'};
             end
             key = event.Key;
-<<<<<<< HEAD
-            val = str2double(event.Source.UserData);
-=======
-            val = str2double(event.Source.UserData);            
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
+            val = event.Source.UserData;
             EmStop(Arduino,Active,Pins.En,val);
             if strcmp(key,options{1,1})
                 move(val,'+');
@@ -964,25 +830,16 @@ end
                 if Pins.Set
                     File = [];
                     File{1} = Pins;
-<<<<<<< HEAD
-                    File{2} = Active;
-=======
-                    File{2} = Active;                    
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
+                    File{2} = str2double(Settings.Pin.Light.String);
+                    File{3} = Active;
                     uisave('File','Settings/Pins.mat')
                     File = [];
                 else
                     Settings.StatusDisplay.String = 'Please set pins first';
                 end
-<<<<<<< HEAD
             case 'Calibration'
                 if CheckCal(Pins.Pot)
                     File = {Pins.Pot(:)};
-=======
-            case 'Calibration'                
-                if CheckCal(Pins.Pot)
-                    File = {Pins.Pot(:)};                    
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
                     uisave('File','Settings/Calibration.mat')
                     File = [];
                 else
@@ -1006,13 +863,8 @@ end
         Settings.StatusDisplay.String = '';
         if ArduinoDetected
             Apin = {Settings.Pin.APin.String};
-<<<<<<< HEAD
-            En = {Settings.Pin.En.String};
+            En = {Settings.Pin.En.String Settings.Pin.Light.String};
             Dir = {Settings.Pin.Dir.String};
-=======
-            Neg = {Settings.Pin.Neg.String};
-            Pos = {Settings.Pin.Pos.String};
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
             Display = Settings.StatusDisplay;
             if  ImproperPinValues(Display,Apin,En,Dir)
                 Status(Display,sprintf('Recheck Values'))
@@ -1020,13 +872,8 @@ end
                 Status(Display,sprintf('Values Check Out'))
                 for i = 1:5
                     Pins.Ana(i) = eval(Apin{i});
-<<<<<<< HEAD
                     Pins.En(i) = eval(En{i});
                     Pins.Dir(i) = eval(Dir{i});
-=======
-                    Pins.En(i) = eval(Neg{i});
-                    Pins.Dir(i) = eval(Pos{i});
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
                 end
                 Active = Settings.Pin.High.Value;
                 Pins.Set = 1;
@@ -1075,11 +922,7 @@ end
     
     %EMERGENCY STOP
     function Stop(~,~)
-<<<<<<< HEAD
         if Pins.Set
-=======
-        if Pins.Set 
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
             digitalWrite(Arduino,Pins.En,zeros(size(Pins.En)));
         else
             Status(Settings.StatusDisplay,'-_- Stop what?');
@@ -1132,11 +975,7 @@ end
         val = source.UserData;
         goal = [Data.Slide(val).Value];
         if CheckCal(Pins.Pot)
-<<<<<<< HEAD
             move(val,goal);
-=======
-                move(val,goal);
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
         elseif ~Pins.Set
             Status(Settings.StatusDisplay,'Setup pins first');
         else
@@ -1229,68 +1068,35 @@ end
     end
     
 %GET DIRECTION TOWARDS GOAL
-    function result = getDir(val,goal)
-        result = ones(size(val));
-        if isnumeric(goal)
-            scale = ([Pins.Pot.Max(val).Value] - [Pins.Pot.Min(val).Value])./abs([Pins.Pot.Max(val).Value] - [Pins.Pot.Min(val).Value]); 
-            goalVoltage = map(goal',Data.ArmLimits(val,:),[[Pins.Pot.Min(val).Value]'.*scale' [Pins.Pot.Max(val).Value]'.*scale']);
-            goalOffset = (goalVoltage - [Pins.Pot.Min(val).Value]'.*scale');
-            armOffset = (analogRead(Arduino,(Pins.Ana(val))')-[Pins.Pot.Min(val).Value]').*scale';
-            low = goalOffset - tolerance;
-            high = goalOffset + tolerance;
-            result(armOffset > high) = 0;
-            result(armOffset < low) = 1;
-            result(armOffset < high & armOffset > low) = NaN;
+    function [Direction,Dist] = getDir(val,goal)
+        Direction = ones(size(val));
+        if isnumeric(goal)            
+            range = [Pins.Pot.Max(val).Value] - [Pins.Pot.Min(val).Value];
+            scale = range./abs(range); %([Pins.Pot.Max(val).Value] - [Pins.Pot.Min(val).Value])./abs([Pins.Pot.Max(val).Value] - [Pins.Pot.Min(val).Value]); 
+            goalVoltage = map(goal',Data.ArmLimits(val,:),[[Pins.Pot.Min(val).Value]' [Pins.Pot.Max(val).Value]'].*scale');  
+            goalOffset = (goalVoltage - analogRead(Arduino,(Pins.Ana(val))').*scale');
+            Dist = abs(goalOffset);
+            Direction(abs(goalOffset) < tolerance) = NaN;
+            Direction(abs(goalOffset) > tolerance & goalOffset < 0) = 0;
+            Direction(abs(goalOffset) > tolerance & goalOffset > 0) = 1;
         else
-            result(strcmp(goal,'-')) = 0;
-            result(strcmp(goal,'+')) = 1;
-            result(~(strcmp(goal,'+')|strcmp(goal,'-'))) = NaN;
+            Dist = Direction;
+            Direction(strcmp(goal,'-')) = 0;
+            Direction(strcmp(goal,'+')) = 1;
+            Direction(~(strcmp(goal,'+')|strcmp(goal,'-'))) = NaN;
         end
     end
-%     function result = getDir(val,goal)
-%         result = ones(size(val));
-%         if isnumeric(goal)
-%             goalVoltage = map(goal',Data.ArmLimits(val,:),[[Pins.Pot.Min(val).Value]' [Pins.Pot.Max(val).Value]']);
-%             goalOffset = abs(goalVoltage - [Pins.Pot.Min(val).Value]');
-%             armOffset = abs(analogRead(Arduino,(Pins.Ana(val))')-[Pins.Pot.Min(val).Value]');
-%             low = goalOffset - tolerance;
-%             high = goalOffset + tolerance;
-%             result(armOffset > high) = 0;
-%             result(armOffset < low) = 0;
-%             result(armOffset < high & armOffset > low) = NaN;
-%         else
-%             for i = 1:numel(val)
-%                 if strcmp(goal(i),'+')
-%                     result(i) = 1;
-%                 elseif strcmp(goal(i),'-')
-%                     result(i) = 0;
-%                 else
-%                     result(i) = NaN;
-%                 end
-%             end
-%         end
-%     end
-
-%MOVE ARM
+    
+    %MOVE ARM
     function move(val,goal)
-        clc
         Dir = getDir(val,goal);
         IdlePins = isnan(Dir);
         digitalWrite(Arduino,Pins.Dir(val(~IdlePins)),Dir(~IdlePins));
-<<<<<<< HEAD
-        if ~(strcmp(goal,'+')||strcmp(goal,'-')) && sum(~IdlePins) 
-            
-            
-            
-            
-            
-=======
-        if ~(strcmp(goal,'+')||strcmp(goal,'-')) && sum(~IdlePins)  
->>>>>>> 09ba26aa873de2816fddff94598ef296164a6905
-            analogWrite(Arduino,Pins.En(val(~IdlePins)),1.5*2.5*ones(numel(find(~IdlePins)),1));
+        if ~(strcmp(goal,'+')||strcmp(goal,'-')) && sum(~IdlePins)
+%             analogWrite(Arduino,Pins.En(val(~IdlePins)),1.8*2.5*ones(numel(find(~IdlePins)),1));
+            digitalWrite(Arduino,Pins.En(val(~IdlePins)),ones(numel(find(~IdlePins)),1));
             n = numel(find(IdlePins));
             while n < numel(Dir)
-                pause(0.02);
                 Dir = getDir(val,goal);
                 NewIdlePins = isnan(Dir);
                 n = numel(find(NewIdlePins));
@@ -1300,19 +1106,14 @@ end
                 end
                 IdlePins = IdlePins|NewIdlePins;
             end
-            
-            
-            
-            
-            
         else
             for i = 1:numel(val)
-                if strcmp(goal,'+')||strcmp(goal,'-')
-                    analogWrite(Arduino,Pins.En(val(i)),2.5);
+                if strcmp(goal(i),'+')||strcmp(goal(i),'-')
+                    analogWrite(Arduino,Pins.En(val(i)),Data.PowerSlide(val(i)).Value/100 * 2.5);
                 else
                     EmStop(Arduino,Active,Pins.En,val(i));
                 end
-            end            
+            end
         end
     end
     
