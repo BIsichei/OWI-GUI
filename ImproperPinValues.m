@@ -6,7 +6,7 @@ function result = ImproperPinValues(Display,Apin,En,Dir)
         Status(Display,'Please Check analog Pins for omitted inputs,');
         Status(Display,'and for non-integer inputs');
     elseif EmptyEntries(En)
-        Status(Display,'Please Check Enable Pins for omitted inputs,');
+        Status(Display,'Please Check digital Pins for omitted inputs,');
         Status(Display,'and for non-integer inputs');
     elseif EmptyEntries(Dir)
         Status(Display,'Please Check Direction Pins for omitted inputs,');
@@ -14,7 +14,11 @@ function result = ImproperPinValues(Display,Apin,En,Dir)
     else
         for i = 1:numel(Apin)
             APins(i) = eval(Apin{i});
+        end
+        for i = 1:numel(En)
             EPins(i) = eval(En{i});
+        end
+        for i = 1:numel(Dir)
             DPins(i) = eval(Dir{i});
         end
         EPins(6) = eval(En{6});
