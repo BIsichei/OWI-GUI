@@ -8,6 +8,8 @@ function Update(Data)
             Data.HGTrans(i).Matrix  = Data.HGTrans(i-1).Matrix * Htrans(DH(i,:));
         end
     end
+    DH(:,4) = -DH(:,4).*RadCheck(1:size(Data.input,1),Data.Slide,Data.Radians)';
+    Data.DHTable.Data = flipud(DH);
     %gripper transforms
     %pi/90 constant converts a full scale value of 45mm to a pi/2 degree turn
     Data.GripTrans(1).Matrix = Data.HGTrans(4).Matrix * Htrans([   0, pi/2,  12.1, 0]) * Htrans([0,0,0, Data.Slide(5).Value * pi/90]);
