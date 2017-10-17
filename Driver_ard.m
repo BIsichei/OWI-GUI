@@ -581,7 +581,7 @@ end
     function Load_Callback(source,~)
         switch source.Parent.Title
             case 'Pin Settings'
-                uiopen('Settings/Pins.mat');
+                uiopen('Settings/Pins/Pins.mat');
                 if numel(File) == 4
                     for i = 1:5
                         Settings.Pin.APin(i).String = File{1}.Ana(i);
@@ -598,7 +598,7 @@ end
                     Settings.StatusDisplay.String = 'Invalid file';
                 end
             case 'Calibration'
-                uiopen('Settings/Calibration.mat');
+                uiopen('Settings/Cal/Calibration.mat');
                 if numel(File) == 1
                     Pins.Pot(:) = File{1};
                     File = [];
@@ -608,7 +608,7 @@ end
                 end
             case 'Open Loop Automation'
             case 'Closed Loop Automation'
-                uiopen('Settings/Movement.mat');
+                uiopen('Settings/Move/Movement.mat');
                 if size(File,1) == 1
                     Program.Config = {Program.Config{:,:}, File{:,:}};
                     File = [];
@@ -869,7 +869,7 @@ end
                     File{2} = str2double(Settings.Pin.Light.String);
                     File{3} = str2double(Settings.Pin.Interrupt.String);
                     File{4} = Active;
-                    uisave('File','Settings/Pins.mat')
+                    uisave('File','Settings/Pins/Pins.mat')
                     File = [];
                 else
                     Settings.StatusDisplay.String = 'Please set pins first';
@@ -877,7 +877,7 @@ end
             case 'Calibration'
                 if CheckCal(Pins.Pot)
                     File = {Pins.Pot(:)};
-                    uisave('File','Settings/Calibration.mat')
+                    uisave('File','Settings/Cal/Calibration.mat')
                     File = [];
                 else
                     Status(Settings.StatusDisplay,'please calibrate pins first');
@@ -886,7 +886,7 @@ end
             case 'Closed Loop Automation'
                 if numel(Program.Config)
                     File = Program.Config;
-                    uisave('File','Settings/Movement')
+                    uisave('File','Settings/Move/Movement')
                     File = [];
                 else
                     Settings.StatusDisplay.String = 'Start a motion first';
@@ -1157,6 +1157,8 @@ end
                 for i = 1:numel(val)
                     if strcmp(goal(i),'+')||strcmp(goal(i),'-')
                         analogWrite(Arduino,Pins.En(val(i)),Data.PowerSlide(val(i)).Value/100 * 2.5);
+                        Pins.En(val(i))
+                        Data.PowerSlide(val(i)).Value/100 * 2.5
                     else
                         EmStop(Arduino,Active,Pins.En,val(i));
                     end
