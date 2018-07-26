@@ -1158,7 +1158,7 @@ end
                     if strcmp(goal(i),'+')||strcmp(goal(i),'-')
                         analogWrite(Arduino,Pins.En(val(i)),Data.PowerSlide(val(i)).Value/100 * 2.5);
                         Pins.En(val(i))
-                        Data.PowerSlide(val(i)).Value/100 * 2.5
+                        Data.PowerSlide(val(i)).Value/100 * 2.5;
                     else
                         EmStop(Arduino,Active,Pins.En,val(i));
                     end
