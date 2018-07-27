@@ -613,7 +613,7 @@ end
                     Program.Config = {Program.Config{:,:}, File{:,:}};
                     File = [];
                     for i = 1:size(Program.Config,2)
-                        Program.List.String{i} = strcat('Config?',num2str(i));
+                        Program.List.String{i} = strcat('Config ',num2str(i));
                     end
                     saveindex = size(Program.Config,2)+1;
                 else
@@ -735,14 +735,14 @@ end
         if strcmp(source.Tag,'Append')
             Program.Config{saveindex} = GetPlotConfig(Data.Slide,Data.Radians);
             Settings.StatusDisplay.String = Program.Config{saveindex};
-            Status(Settings.StatusDisplay,strcat('Config?',num2str(saveindex),'?saved'));
-            Program.List.String{saveindex} = strcat('Config?',num2str(saveindex));
+            Status(Settings.StatusDisplay,strcat('Config ',num2str(saveindex),' saved'));
+            Program.List.String{saveindex} = strcat('Config ',num2str(saveindex));
             saveindex = saveindex + 1;
         elseif strcmp(source.Tag,'Delete')&& saveindex>2
             saveindex = saveindex -1;
             Config(Program.Config{saveindex-1});
             Program.List.String{saveindex} = [];
-            Settings.StatusDisplay.String = strcat('Config?',num2str(saveindex),'?deleted');
+            Settings.StatusDisplay.String = strcat('Config ',num2str(saveindex),' deleted');
         else
             saveindex = 1;
             Program.Config = {};
@@ -1085,12 +1085,15 @@ end
 
 %SET AN ARM CONFIGURATION (angle values in degrees)
     function Config(input,varargin)
+        clc
+        Interrupt = 0;
+        stop = 0;
         if nargin == 1
             for i = 1:numel(input)
                 Data.Slide(i).Value = input(i)/RadCheck(i,Data.Slide,Data.Radians);
                 Slide_Callback(Data.Slide(i));
             end
-        else
+        else % Fancy Display for Preview window
             SlideConfig = GetPlotConfig(Data.Slide,Data.Radians);
             for i = 1:5
                 n = input(6-i) - SlideConfig(6-i);
@@ -1098,11 +1101,21 @@ end
                 if m
                     for k = 1:abs(m)
                         Data.Slide(6-i).Value = (SlideConfig(6-i)+k*m/abs(m))/RadCheck(6-i,Data.Slide,Data.Radians);
-                        pause(.01);
+                        pause(.02);
+                        %Update(Data);
+                        Interrupt
+                        stop
+                        if Interrupt
+                            stop = 1;
+                            break
+                        end
                     end
                     if rem(n,1)
                         Data.Slide(6-i).Value = input(6-i)/RadCheck(6-i,Data.Slide,Data.Radians);
                     end
+                end
+                if stop 
+                    break
                 end
                 Slide_Callback(Data.Slide(6-i));
             end
@@ -1131,15 +1144,15 @@ end
     
     %MOVE ARM
     function move(val,goal)
-        clc
-        Dir = getDir(val,goal);
-        IdlePins = isnan(Dir);
-        digitalWrite(Arduino,Pins.Dir(val(~IdlePins)),Dir(~IdlePins));
-        Interrupt = 0;
-        if analogRead(Arduino,Pins.Interrupt)> 4
-            if ~(strcmp(goal,'+')||strcmp(goal,'-')) && sum(~IdlePins)
+        Dir = getDir(val,goal); % Get the direction of the movement (0) for negative, (1) for positive, and NaN for idle joints
+        IdlePins = isnan(Dir); % Get index of Idle joints
+        digitalWrite(Arduino,Pins.Dir(val(~IdlePins)),Dir(~IdlePins)); %Update the Direction pins of non-idle joints
+        Interrupt = 0; % reset interrupt
+        if analogRead(Arduino,Pins.Interrupt)> 4 %Check for the shunt and only move with the shunt removed.
+            if ~(strcmp(goal,'+')||strcmp(goal,'-')) && sum(~IdlePins) %perform this section is source is not the virtual remote
+                
                 %analogWrite(Arduino,Pins.En(val(~IdlePins)),Data.PowerSlide(Val(~IdlePins)).Value/100*2.5*ones(numel(find(~IdlePins)),1));
-                digitalWrite(Arduino,Pins.En(val(~IdlePins)),ones(numel(find(~IdlePins)),1));
+                digitalWrite(Arduino,Pins.En(val(~IdlePins)),ones(numel(find(~IdlePins)),1)); %Start move by enabling non idle joints
                 n = numel(find(IdlePins));
                 while (n < numel(Dir) && ~Interrupt && analogRead(Arduino,Pins.Interrupt) > 4)
                     Dir = getDir(val,goal);
@@ -1153,12 +1166,10 @@ end
                     IdlePins = IdlePins|NewIdlePins;
                 end
                 EmStop(Arduino,Active,Pins.En,(1:5));
-            else
+            else 
                 for i = 1:numel(val)
                     if strcmp(goal(i),'+')||strcmp(goal(i),'-')
                         analogWrite(Arduino,Pins.En(val(i)),Data.PowerSlide(val(i)).Value/100 * 2.5);
-                        Pins.En(val(i))
-                        Data.PowerSlide(val(i)).Value/100 * 2.5;
                     else
                         EmStop(Arduino,Active,Pins.En,val(i));
                     end
