@@ -1,5 +1,5 @@
 function Update(Data)
-    %UPDATE THE FIGURE    
+    %UPDATE THE FIGURE WITH THE SLIDE VALUES    
     for i = 1:size(Data.input,1) %for every arm but the gripper, update the transforms
         DH(i,:) = [Data.input(i,1), Data.input(i,2), Data.input(i,3), -Data.Slide(i).Value];
         if i == 1
@@ -19,3 +19,7 @@ function Update(Data)
     Data.GripTrans(5).Matrix = Data.GripTrans(3).Matrix * Htrans([  23,    0,     0, 0]) * Htrans([0,0,0,-Data.Slide(5).Value * pi/90]);
     Data.GripTrans(6).Matrix = Data.GripTrans(4).Matrix * Htrans([  23,    0,     0, 0]) * Htrans([0,0,0, Data.Slide(5).Value * pi/90]);
 end
+%{
+    RadCheck
+    Htrans
+%}

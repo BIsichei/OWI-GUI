@@ -36,10 +36,10 @@ function result = ImproperPinValues(Display,Apin,En,Dir)
             result = 0;
         end
     end
-    %{
+end
+%{
     EmptyEntries
     Status
     OutofRange
     RepeatedEntries
-    %}
-end
+%}
