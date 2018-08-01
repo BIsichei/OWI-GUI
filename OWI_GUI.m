@@ -1,4 +1,4 @@
-function Driver_ard(Arduino)
+function OWI_GUI(Arduino)
 %{ 
 
 Author: Benedict Isichei
@@ -26,7 +26,9 @@ an index value of 1 typically corresponds to a parameter related to M5,
 while an index of 5 corresponts to a parameter of M1.    
     
     TODO:
+    Config preview for movement
     more efficient Move function
+    Status update function
     Speed Control
     Proper braking
     Multi-arm support
