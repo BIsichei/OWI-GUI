@@ -1,20 +1,19 @@
 function Driver_ard(Arduino)
 %{ 
 
-Author: Bendict Isichei
+Author: Benedict Isichei
 
-To use this GUI, the user passes an arduino board to the function when
-calling it. 
-The main interface shows a 3D representation of the robotic arm. 
+To use this GUI, the user either passes an arduino board to the function 
+when calling it, or selects the arduino port in the Arduino Port menu
+The main interface shows a 3D representation of the robotic arm. This
+preview only works when the arm's Joints have been calibrated. 
 
 The display tab allows the user to change the display settings of the
-arm, and also to change the arm's current configuration.
+arm preview, and upload the previewed arm position to the physical robot.
 
-The arduino tab is used to indicate what pins control what motor, and what 
-analog inputs correspond to each motor. View Readme for info on pins.
-
-The arduino tab has a calibration panel that shows up only after the pins
-have been set.
+The arduino tab is used to indicate the Robot's I/O and calibrate the 
+robot's joints. View Readme for info on pins. The calibration panel on this
+tab only shows up only after the pins have been set.
 
 The automation tab allows the end User to program simple robot motions.
 
@@ -24,33 +23,40 @@ from 0 to 15)
 
 Due to the nature of DH parameters and how they build up from the base,
 an index value of 1 typically corresponds to a parameter related to M5,
-while an index of 5 corresponts to one of M1.
-    
+while an index of 5 corresponts to a parameter of M1.    
     
     TODO:
-    Move function
+    more efficient Move function
     Speed Control
-    Stop
-    Save and Load
-    Automation
+    Proper braking
+    Multi-arm support
 %}
 
 clc
-% Makes sure there's only one instance of the GUI up at a time
-f = findall(0,'Name','OWI_GUI');
-if isempty(f)
-    f = figure('Visible','off','Units','Pixels','ToolBar','none',...
+% Makes sure there's only one instance of the unbound GUI up at a time
+Fig = findall(0,'Name','OWI_GUI');
+if isempty(Fig)
+    Fig = figure('Visible','off','Units','Pixels','ToolBar','none',...
         'Name','OWI_GUI','MenuBar','none','Numbertitle','off');
 else
-    clf(f);
-    f.Visible = 'off'; f.Units = 'Pixels';
-    f.ToolBar = 'none';f.MenuBar = 'none';
-    f.NumberTitle = 'off';
+    clf(Fig);
+    Fig.Visible = 'off'; Fig.Units = 'Pixels';
+    Fig.ToolBar = 'none'; Fig.MenuBar = 'none';
+    Fig.NumberTitle = 'off';
+end
+if ~(nargin && isa(Arduino,'arduino'))
+    %Create menu if an arduino object isn't passed to the function
+    uimenu(Fig,'Text','Arduino Port',...
+        'MenuSelectedFcn', @Menu_Callback);
+else
+    %If an arduino object is passed to the function, bind the function
+    Currentfigure = gcf;
+    Currentfigure.Name = strcat('OWI_GUI (',Arduino.Port,')');
 end
 
 % Setup the axes and the main tab groups
-Axes1 = axes(f,'Units','Pixels','Position',[50,60,400,400],'Box','on');
-TabGroup = uitabgroup(f,'Units','Pixels','position',[470 0, 280, 500],...
+Axes1 = axes(Fig,'Units','Pixels','Position',[50,60,400,400],'Box','on');
+TabGroup = uitabgroup(Fig,'Units','Pixels','position',[470 0, 280, 500],...
     'SelectionChangedFcn',@TabChanged_Callback);
 ViewTab = uitab(TabGroup,'Title','Display');
 ArduinoTab = uitab(TabGroup,'Title','Arduino'); 
@@ -63,8 +69,6 @@ axis square
 view(-150,30);
 rotate3d on;
 dim = 'xyz';
-%Set GUI to only work for Mega
-ArduinoDetected = nargin && ~isempty(findobj(Arduino,'Board','Mega2560'));
 tolerance = 0.2; %volts
 Interrupt = 0;
 saveindex = 1;
@@ -92,14 +96,14 @@ Pins.Default = [     0     5     4;
      4     13    12;
      0     1     0];
 Pins.Set = 0;
-for j = 1:5
-    Pins.Ana(j) = NaN;
-    Pins.En(j) = NaN;
-    Pins.Dir(j) = NaN;
-    Pins.Pot.Min(j).Value = NaN;
-    Pins.Pot.Min(j).Set = 0;
-    Pins.Pot.Max(j).Value = NaN;
-    Pins.Pot.Max(j).Set = 0;
+for counter = 1:5
+    Pins.Ana(counter) = NaN;
+    Pins.En(counter) = NaN;
+    Pins.Dir(counter) = NaN;
+    Pins.Pot.Min(counter).Value = NaN;
+    Pins.Pot.Min(counter).Set = 0;
+    Pins.Pot.Max(counter).Value = NaN;
+    Pins.Pot.Max(counter).Set = 0;
 end
 Program.Config = {};
 
@@ -122,36 +126,36 @@ DHSettings = uipanel(ViewTab,'Units','Pixels','Position',[10,10,180,115],...
 
 %VIEWTAB CHILDREN
 base = 350; %base y value for sliders
-for j = 1:5
-    Data.SlideReset(j) = uicontrol(ViewTab,'UserData',j,...
-        'Position',[32,base+30*(j-1)+10,20,12],'Callback',@ResetArms_Callback,...
-        'String',strcat('M',num2str(6-j)),'TooltipString','Reset this joint');
-    Data.SlideText(j) = uicontrol(ViewTab,'Style','edit','UserData',j,...
-        'Position',[32,base+30*(j-1)-2,20,14],'Callback',@SlideText_Callback,...
+for counter = 1:5
+    Data.SlideReset(counter) = uicontrol(ViewTab,'UserData',counter,...
+        'Position',[32,base+30*(counter-1)+10,20,12],'Callback',@ResetArms_Callback,...
+        'String',strcat('M',num2str(6-counter)),'TooltipString','Reset this joint');
+    Data.SlideText(counter) = uicontrol(ViewTab,'Style','edit','UserData',counter,...
+        'Position',[32,base+30*(counter-1)-2,20,14],'Callback',@SlideText_Callback,...
         'String',0);
-    Data.PowerSlide(j) = uicontrol(ViewTab,'Style','Slider','UserData',j,...
-        'Position',[245,base+30*(j-1)+10,5,12],'Callback',@Slide_Callback,...
+    Data.PowerSlide(counter) = uicontrol(ViewTab,'Style','Slider','UserData',counter,...
+        'Position',[245,base+30*(counter-1)+10,5,12],'Callback',@Slide_Callback,...
         'String','P','Min',0,'Max',200,'Value',100);
-    Data.PowerText(j) = uicontrol(ViewTab,'Style','edit','UserData',j,...
-        'Position', [56,base+30*(j-1)+10,20,12],'Callback',@PowerText_Callback,...
+    Data.PowerText(counter) = uicontrol(ViewTab,'Style','edit','UserData',counter,...
+        'Position', [56,base+30*(counter-1)+10,20,12],'Callback',@PowerText_Callback,...
         'String',100);
-    Data.Slide(j) =  uicontrol(ViewTab,'Style','slider','UserData',j,...
-        'Position',[55,base+30*(j-1),200,10],'Callback',@Slide_Callback,...
-        'String', 'R','Min', Data.ArmLimits(j,1),'Max',Data.ArmLimits(j,2),...
+    Data.Slide(counter) =  uicontrol(ViewTab,'Style','slider','UserData',counter,...
+        'Position',[55,base+30*(counter-1),200,10],'Callback',@Slide_Callback,...
+        'String', 'R','Min', Data.ArmLimits(counter,1),'Max',Data.ArmLimits(counter,2),...
         'Value',0);
-    Data.Upload(j) = uicontrol(ViewTab,'FontSize',12,'UserData',j,...
-        'position',[258,base+30*(j-1)-2,14,12],'Callback',@Upload_Callback,...
+    Data.Upload(counter) = uicontrol(ViewTab,'FontSize',12,'UserData',counter,...
+        'position',[258,base+30*(counter-1)-2,14,12],'Callback',@Upload_Callback,...
         'String','>','FontWeight','bold','TooltipString','Upload to board');        
-    align([Data.SlideText(j) Data.SlideReset(j)],'Center','Fixed',1);
-    align([Data.SlideText(j) Data.Slide(j) Data.Upload(j)],'None','Middle');
-    align([Data.PowerText(j) Data.Upload(j)],'Right','Fixed',1);
-    align([Data.PowerSlide(j) Data.PowerText(j)],'None','Top');
+    align([Data.SlideText(counter) Data.SlideReset(counter)],'Center','Fixed',1);
+    align([Data.SlideText(counter) Data.Slide(counter) Data.Upload(counter)],'None','Middle');
+    align([Data.PowerText(counter) Data.Upload(counter)],'Right','Fixed',1);
+    align([Data.PowerSlide(counter) Data.PowerText(counter)],'None','Top');
 end
-for j = 1:size(Data.input,1)
-    Data.HGTrans(j) = hgtransform(Axes1);
+for counter = 1:size(Data.input,1)
+    Data.HGTrans(counter) = hgtransform(Axes1);
 end
-for j = 1:6
-    Data.GripTrans(j) = hgtransform(Axes1);
+for counter = 1:6
+    Data.GripTrans(counter) = hgtransform(Axes1);
 end
 Data.Slide(5).SliderStep = [1/90 1/18];
 Data.Slide(5).String = 'G';
@@ -207,14 +211,14 @@ Settings.View.Iso = uicontrol(ViewSettings,'Position',[90,10,50,20],...
 %AXISSETTINGS CHILDREN
 Settings.Axis.TopLabel = uicontrol(AxisSettings,'Style','text',...
     'String','Min : Max','Position',[10,83,40,20]);
-for j = 1:3
-    Settings.Axis.Min(j) = uicontrol(AxisSettings,'Style','edit','Userdata',j,...
-        'Position',[10,10+(j-1)*30,50,20]);
-    Settings.Axis.Max(j) = uicontrol(AxisSettings,'Style','edit','Userdata',j,...
-        'Position',[65,10+(j-1)*30,50,20]);
-    Settings.Axis.Set(j) = uicontrol(AxisSettings,'Userdata',j,...
-        'Position',[120,10+(j-1)*30,50,20],'Callback',@AxisLimit_Callback,...
-        'String', strcat('Set ',dim(j)));
+for counter = 1:3
+    Settings.Axis.Min(counter) = uicontrol(AxisSettings,'Style','edit','Userdata',counter,...
+        'Position',[10,10+(counter-1)*30,50,20]);
+    Settings.Axis.Max(counter) = uicontrol(AxisSettings,'Style','edit','Userdata',counter,...
+        'Position',[65,10+(counter-1)*30,50,20]);
+    Settings.Axis.Set(counter) = uicontrol(AxisSettings,'Userdata',counter,...
+        'Position',[120,10+(counter-1)*30,50,20],'Callback',@AxisLimit_Callback,...
+        'String', strcat('Set ',dim(counter)));
 end
 
 
@@ -229,12 +233,12 @@ Settings.Slide.TopLabel = uicontrol(SlideSettings,'Style','text',...
 Settings.Slide.Reset2 = uicontrol(SlideSettings,'Userdata','single',...
     'Position',[70,35,100,15],'String','Reset Slide',...
     'Callback',@ResetLimits_Callback);
-for j = 1:5
-    Settings.Slide.Min(j) = uicontrol(SlideSettings,'Style','edit','UserData',j,...
+for counter = 1:5
+    Settings.Slide.Min(counter) = uicontrol(SlideSettings,'Style','edit','UserData',counter,...
         'Position',[10,10,50,20],'Visible','off');
-    Settings.Slide.Max(j) = uicontrol(SlideSettings,'Style','edit','UserData',j,...
+    Settings.Slide.Max(counter) = uicontrol(SlideSettings,'Style','edit','UserData',counter,...
         'Position',[65,10,50,20],'Visible','off');
-    Settings.Slide.Label(j) = uicontrol(SlideSettings,'UserData',j,...
+    Settings.Slide.Label(counter) = uicontrol(SlideSettings,'UserData',counter,...
         'Position',[120,10,50,20],'Callback',@SlideLimit_Callback,...
         'String','Limit Slider','Visible','off');
 end
@@ -247,10 +251,10 @@ Data.DHTable = uitable(DHSettings,'Data',[Data.input(:,1:3) [Data.Slide(1).Value
 
 
 %REMOTESETTINGS CHILDREN
-for j = 1:5
-    Settings.Remote(j) = uicontrol(RemoteSettings,'Userdata',j,...
-        'Position',[2,3+25*(j-1),20,20],'Callback',@Remote_Callback,...
-        'String',strcat('M',num2str(6-j)),'BackgroundColor',[.9 .9 1],...
+for counter = 1:5
+    Settings.Remote(counter) = uicontrol(RemoteSettings,'Userdata',counter,...
+        'Position',[2,3+25*(counter-1),20,20],'Callback',@Remote_Callback,...
+        'String',strcat('M',num2str(6-counter)),'BackgroundColor',[.9 .9 1],...
         'KeyPressFcn',@RemoteKeyPress_Callback,'ForegroundColor',[.5 .6 .7]);
 end
 
@@ -277,21 +281,21 @@ Settings.Pin.DirectionLabel = uicontrol(PinSettings,'Style','text',...
     'TooltipString','These values indicate what direction the motors move');
 base = 25;
 offset = 22;
-for j = 1:5
-    Settings.Pin.ALabel(j) = uicontrol(PinSettings,'Style','text','UserData',j,...
-        'Position',[5,base+offset*(j-1),45,15],'HorizontalAlignment','left',...
-        'String',strcat('M',num2str(6-j),' Pot Pin'));
-    Settings.Pin.APin(j) = uicontrol(PinSettings,'Style','edit','UserData',j,...
-        'Position',[23,base+offset*(j-1),20,15]);
-    Settings.Pin.En(j) = uicontrol(PinSettings,'Style','edit','UserData',j,...
-        'Position',[155,base+offset*(j-1),20,15]);
-    Settings.Pin.Dir(j) = uicontrol(PinSettings,'Style','edit','UserData',j,...
-        'Position',[176,base+offset*(j-1),20,15]);
-    Settings.Pin.Label(j) = uicontrol(PinSettings,'Style','text','UserData',j,...
-        'Position',[36,base+offset*(j-1),65,15],'HorizontalAlignment','Right',...
-        'String',strcat('M',num2str(6-j),' Output Pins'));
-    align ([Settings.Pin.ALabel(j) Settings.Pin.APin(j) Settings.Pin.En(j) ...
-        Settings.Pin.Dir(j) Settings.Pin.Label(j)], 'Fixed',1,'Middle');    
+for counter = 1:5
+    Settings.Pin.ALabel(counter) = uicontrol(PinSettings,'Style','text','UserData',counter,...
+        'Position',[5,base+offset*(counter-1),45,15],'HorizontalAlignment','left',...
+        'String',strcat('M',num2str(6-counter),' Pot Pin'));
+    Settings.Pin.APin(counter) = uicontrol(PinSettings,'Style','edit','UserData',counter,...
+        'Position',[23,base+offset*(counter-1),20,15]);
+    Settings.Pin.En(counter) = uicontrol(PinSettings,'Style','edit','UserData',counter,...
+        'Position',[155,base+offset*(counter-1),20,15]);
+    Settings.Pin.Dir(counter) = uicontrol(PinSettings,'Style','edit','UserData',counter,...
+        'Position',[176,base+offset*(counter-1),20,15]);
+    Settings.Pin.Label(counter) = uicontrol(PinSettings,'Style','text','UserData',counter,...
+        'Position',[36,base+offset*(counter-1),65,15],'HorizontalAlignment','Right',...
+        'String',strcat('M',num2str(6-counter),' Output Pins'));
+    align ([Settings.Pin.ALabel(counter) Settings.Pin.APin(counter) Settings.Pin.En(counter) ...
+        Settings.Pin.Dir(counter) Settings.Pin.Label(counter)], 'Fixed',1,'Middle');    
 end
 Settings.Pin.InterruptLabel = uicontrol(PinSettings,'Style','text','UserData',7,...
         'Position',[5,base+offset*(5),45,15],'HorizontalAlignment','Left',...
@@ -318,10 +322,10 @@ Settings.Pin.Load = uicontrol(PinSettings,'Position',[200 145 50 20],...
 
 %CALPANEL CHILDREN
 CalSettings = uibuttongroup(CalPanel,'Units','Pixels','Position',[0 188 270 50]);
-for j = 1:5
-    Settings.Cal.Button(j) = uicontrol(CalSettings,'Style','toggle','UserData',j,...
-        'Position',[1+53*(j-1),5,50,20],'Callback',@CalButton_Callback,...
-        'String',strcat('M',num2str(6-j)));
+for counter = 1:5
+    Settings.Cal.Button(counter) = uicontrol(CalSettings,'Style','toggle','UserData',counter,...
+        'Position',[1+53*(counter-1),5,50,20],'Callback',@CalButton_Callback,...
+        'String',strcat('M',num2str(6-counter)));
 end
 Settings.Cal.Orient = uicontrol(CalPanel,'Units','Pixels','String','Orient',...
     'Position',[5 30 30 20],'Callback',@Orientation_Callback);
@@ -366,11 +370,11 @@ Program.Upload = uicontrol(ClosedLoopPanel,'Position',[10 225 255 20],...
 %OPEN LOOP CHILDREN
 
 %% DRAWING ITEMS
-y = [231 188 34]./255;
+defaultColor = [231 188 34]./255;
 %Base1
 [Vertices, Faces , ~, ~]= stlReadBinary('Models/Base_1.stl');
 patch('Faces',Faces,'Vertices',Vertices,...
-    'FaceColor',y,'Parent',Data.HGTrans(1),'EdgeColor',y/2);
+    'FaceColor',defaultColor,'Parent',Data.HGTrans(1),'EdgeColor',defaultColor/2);
 %Base2
 [Vertices, Faces , ~, ~]= stlReadBinary('Models/Base_2.stl');
 patch('Faces',Faces,'Vertices',Vertices,...
@@ -386,7 +390,7 @@ patch('Faces',Faces,'Vertices',Vertices,...
 %Arm2_2
 [Vertices, Faces, ~, ~]= stlReadBinary('Models/arm2_2.stl');
 patch('Faces',Faces,'Vertices',Vertices,...
-    'FaceColor',y,'Parent',Data.HGTrans(3),'EdgeColor',y/2);
+    'FaceColor',defaultColor,'Parent',Data.HGTrans(3),'EdgeColor',defaultColor/2);
 %Gripper
 [Vertices, Faces, ~, ~]= stlReadBinary('Models/gripper.stl');
 patch('Faces',Faces,'Vertices',Vertices,...
@@ -421,21 +425,21 @@ patch('Faces',Faces,'Vertices',Vertices,...
 TableTrans = hgtransform('Parent',Axes1,'Matrix',makehgtform('translate',[0 0 -70]));
 rectangle('Position',[-300 -300 600 600],'Parent',TableTrans,...
     'Curvature',[1,1],'FaceColor',[.8 .8 .8]);
-f.Position = [100 100 750 500];
+Fig.Position = [100 100 750 500];
 
 %% NORMALIZING ALL UI ELEMENTS and initial run
-f.Units = 'normalized';
+Fig.Units = 'normalized';
 Axes1.Units = 'normalized';
 TabGroup.Units = 'normalized';
-g = findobj('Type','uicontrol','-or','Type','uibuttongroup','-or','Type','uipanel','-or','Type','uitable');
-for j = 1:size(g,1)
-    g(j,1).Units = 'normalized';
+uiitems = findobj('Type','uicontrol','-or','Type','uibuttongroup','-or','Type','uipanel','-or','Type','uitable');
+for counter = 1:size(uiitems,1)
+    uiitems(counter,1).Units = 'normalized';
 end
-g = findobj('Type','uicontrol');
-for j = 1:size(g,1)
-    g(j,1).FontUnits = 'normalized';
+uicontrols = findobj('Type','uicontrol');
+for counter = 1:size(uicontrols,1)
+    uicontrols(counter,1).FontUnits = 'normalized';
 end
-f.Position = [0.15 0.15 .7 .7];
+Fig.Position = [0.15 0.15 .7 .7];
 RemoteSettings.Position = [2/280 345/500 26/280 152/500];
 Settings.Advanced1.FontUnits = 'points';
 Settings.Advanced2.FontUnits = 'points';
@@ -443,19 +447,19 @@ Settings.DH.FontUnits = 'points';
 ResetAxis_Callback
 ResetLimits_Callback(Settings.Slide.Reset);
 Update(Data)
-f.Visible = 'on'; %show the figure
+Fig.Visible = 'on'; %show the figure
 
-for j = 1:5
-    Settings.Pin.APin(j).String = Pins.Default(j,1);
-    Settings.Pin.En(j).String = Pins.Default(j,2);
-    Settings.Pin.Dir(j).String = Pins.Default(j,3);
-    Data.SlideText(j).FontUnits = 'points';
-    Data.PowerText(j).FontUnits = 'points';
+for counter = 1:5
+    Settings.Pin.APin(counter).String = Pins.Default(counter,1);
+    Settings.Pin.En(counter).String = Pins.Default(counter,2);
+    Settings.Pin.Dir(counter).String = Pins.Default(counter,3);
+    Data.SlideText(counter).FontUnits = 'points';
+    Data.PowerText(counter).FontUnits = 'points';
 end
 
 %% CALLBACKS
 
-%%Shows or hides advanced controls not meant for the general user
+    %%Shows or hides advanced controls not meant for the general user
     function AdvancedControls_Callback(source,~)
         %Called by Settings.Advanced1 or Advanced2 in the ViewTab
         if strcmp(source.Units,'normalized')
@@ -575,7 +579,17 @@ end
             Settings.Cal.Orient.Visible = 'on';
             Settings.StatusDisplay.String = strcat('Click Orient to begin calibration');
         end
-    end       
+    end
+
+    %%Initializes the arduino
+    function Initialize_Arduino(source,~)
+        Arduino = arduino(source.Text)
+        if isa(Arduino,'arduino')
+            Currentfig = gcf;
+            Currentfig.Name = strcat('OWI_GUI (',Arduino.Port,')');
+        end
+        source.Parent.Visible = 'off';
+    end
 
     %%Loads File from disk
     function Load_Callback(source,~)
@@ -619,6 +633,16 @@ end
                 else
                     Settings.StatusDisplay.String = 'Invalid file';
                 end
+        end
+    end
+    
+    %%Updates the availiable COM Ports
+    function Menu_Callback(source,~)
+        delete(source.Children);
+        items = seriallist;%["one" "two" "three"];
+        for i= 1:numel(items)
+        	uimenu(source, 'Text', items(i),...
+                'MenuSelectedFcn', @Initialize_Arduino);
         end
     end
     
@@ -898,7 +922,7 @@ end
     function SetPin_Callback(~,~)
         %Called by Settings.Cal.Set in the PinSettings uipanel
         Settings.StatusDisplay.String = '';
-        if ArduinoDetected
+        if isa(Arduino,'arduino')
             Apin = {Settings.Pin.APin.String Settings.Pin.Interrupt.String};
             En = {Settings.Pin.En.String Settings.Pin.Light.String};
             Dir = {Settings.Pin.Dir.String};
