@@ -26,11 +26,16 @@ an index value of 1 typically corresponds to a parameter related to M5,
 while an index of 5 corresponts to a parameter of M1.    
     
     TODO:
-    Config preview for movement
-    more efficient Move function
     Status update function
-    Speed Control
+    Only accept suitable arduino boards:
+        Uno
+        Leonardo
+        Mega2560
+        MegaADK  
+    Edit OutofRange function appropriately
+    Smooth Config preview for movement
     Proper braking
+    Speed Control
     Multi-arm support
 %}
 
@@ -461,7 +466,7 @@ end
 
 %% CALLBACKS
 
-    %%Shows or hides advanced controls not meant for the general user
+    %Shows or hides advanced controls not meant for the general user
     function AdvancedControls_Callback(source,~)
         %Called by Settings.Advanced1 or Advanced2 in the DisplayTab
         if strcmp(source.Units,'normalized')
@@ -519,7 +524,7 @@ end
         end
     end
     
-    %%sets the x, y or z limits.
+    %sets the x, y or z limits.
     function AxisLimit_Callback(source,~)
         %Called by Settings.Axis.Set<> in the AxisLimit uipanel
         val = source.UserData;
@@ -535,7 +540,7 @@ end
         end
     end
     
-    %%Opens the Calibration Menu for the selected Motor
+    %Opens the Calibration Menu for the selected Motor
     function CalButton_Callback(source,~)
         %Called by Settings.Cal.Button in the CalSettings uipanel
         val = source.UserData;
@@ -557,7 +562,7 @@ end
         end
     end
     
-    %%Sets the Min or Max value for the selected motor
+    %Sets the Min or Max value for the selected motor
     function Calibrate_Callback(source,~)
         %Called by Settings.Cal.Set on the CalSettings uipanel
         val = CalSettings.SelectedObject.UserData;
@@ -583,7 +588,7 @@ end
         end
     end
 
-    %%Initializes the arduino
+    %Initializes the arduino
     function Initialize_Arduino(source,~)
         Arduino = arduino(source.Text);
         if isa(Arduino,'arduino')
@@ -593,7 +598,7 @@ end
         source.Parent.Visible = 'off';
     end
 
-    %%Loads File from disk
+    %Loads File from disk
     function Load_Callback(source,~)
         switch source.Parent.Title
             case 'Pin Settings'
@@ -638,7 +643,7 @@ end
         end
     end
     
-    %%Updates the availiable COM Ports
+    %Updates the availiable COM Ports
     function Menu_Callback(source,~)
         delete(source.Children);
         items = seriallist;%["one" "two" "three"];
@@ -648,7 +653,7 @@ end
         end
     end
     
-    %%Shows the end user the proper orientation required to calibrate
+    %Shows the end user the proper orientation required to calibrate
     %the robot's physical readings
     function Orientation_Callback(~,~)
         %Called by Settings.Cal.Orient on the CalSettings uipanel
@@ -708,7 +713,7 @@ end
         end
     end
     
-    %%Updates the plot with the physical robot's current orientation
+    %Updates the plot with the physical robot's current orientation
     function PlotUpdate_Callback(~,~)
         %called by Data.UpdatePlot in the Main Figure
         if  CheckCal(Pins.Pot)
@@ -719,17 +724,17 @@ end
         end
     end
     
-    %%Changes the arm Movement power
+    %Changes the arm Movement power
     function PowerText_Callback(source,~)
         Data.PowerSlide(source.UserData).Value = str2double(source.String);        
     end
     
-    %%Callback for displaying a motion Config
+    %Callback for displaying a motion Config
     function ProgramList_Callback(source,~)
         Config(Program.Config{source.Value});
     end
     
-    %%Callback for buttons in the program tab pertaining to moving the arm
+    %Callback for buttons in the program tab pertaining to moving the arm
     function ProgramMove_Callback(source,~)
         %Called by Program.Display and Program.Upload in the RemoteTab
         if numel(Program.Config)
@@ -755,7 +760,7 @@ end
         end
     end
     
-    %%Callback for buttons in the program tab pertaining to motion data
+    %Callback for buttons in the program tab pertaining to motion data
     function ProgramSave_Callback(source,~)
         %Called by Program.Delete, Program.Append and Program.Reset
         if strcmp(source.Tag,'Append')
@@ -779,7 +784,7 @@ end
         end
     end
     
-    %%Changes the Angles shown next to the sliders to degrees or radians
+    %Changes the Angles shown next to the sliders to degrees or radians
     function Radian_Callback(source,~)
         %Called by Data.Radians in the DisplayTab
         for i = 1:4
@@ -833,7 +838,7 @@ end
         end
     end
     
-    %%Resets all the robot's arms
+    %Resets all the robot's arms
     function ResetArms_Callback(source,~)
         %Called by Data.ResetArm or Data.SlideLable<> in the DisplayTab
         val = source.UserData;
@@ -848,7 +853,7 @@ end
         end
     end
     
-    %%resets the axis limits
+    %resets the axis limits
     function ResetAxis_Callback(~,~)
         %Called by Settings.Axis.Reset in the DisplayTab
         axis([-350 350 -350 350  -75 625]);
@@ -861,7 +866,7 @@ end
         Settings.Axis.Max(3).String = 625;
     end
     
-    %%Resets the current slide limits or all slide limits
+    %Resets the current slide limits or all slide limits
     function ResetLimits_Callback(source,~)
         %Called by Settings.Slide.Reset and Reset2 in the SlideLimits
         %uipanel
@@ -885,7 +890,7 @@ end
         end
     end
     
-    %%Saves data to disk
+    %Saves data to disk
     function Save_Callback(source,~)
         switch source.Parent.Title
             case 'Pin Settings'
@@ -920,7 +925,7 @@ end
         end
     end
     
-    %%Sets the Pin ports for the arduino
+    %Sets the Pin ports for the arduino
     function SetPin_Callback(~,~)
         %Called by Settings.Cal.Set in the PinSettings uipanel
         Settings.StatusDisplay.String = '';
@@ -954,7 +959,7 @@ end
         end
     end
     
-    %%Changes the configuration of the robot arm
+    %Changes the configuration of the robot arm
     function Slide_Callback(source,~)
         %Called by Data.Slide<> in the DisplayTab
         index = source.UserData;
@@ -966,7 +971,7 @@ end
         end
     end
     
-    %%Sets the limit of the chosen slide
+    %Sets the limit of the chosen slide
     function SlideLimit_Callback(source,~)
         %Called by Settings.Slide.Label in the SlideSettings uipanel
         val = source.UserData;
@@ -979,7 +984,7 @@ end
         end
     end
     
-    %%Sets slide values
+    %Sets slide values
     function SlideText_Callback(source,~)
         %Called by Data.SlideText<> in the DisplayTab
         index = source.UserData;
@@ -1037,7 +1042,7 @@ end
         end
     end
     
-    %%Uploads one or more arm configurations to the arduino
+    %Uploads one or more arm configurations to the arduino
     function Upload_Callback(source,~)
         %Called by Data.Upload<> and Data.UploadAll in the DisplayTab
         val = source.UserData;
@@ -1051,7 +1056,7 @@ end
         end
     end
     
-    %%changes the Plot view
+    %changes the Plot view
     function Display_Callback(source,~)
         %called by all buttons in the DisplaySettings menu in the DisplayTab
         switch source.String
@@ -1088,7 +1093,7 @@ end
         end
     end
     
-    %%Displays the slide limit edit boxes indicated by the menu
+    %Displays the slide limit edit boxes indicated by the menu
     function ViewSlider_Callback(source,~)
         %Called by Settings.Slide.ShowBoxes in the DisplayTab
         val = Settings.Slide.Menu.Value;
@@ -1109,7 +1114,7 @@ end
 
 %% FUNCTIONS
 
-%SET AN ARM CONFIGURATION (angle values in degrees)
+    %SET AN ARM CONFIGURATION (angle values in degrees)
     function Config(input,varargin)
         clc
         Interrupt = 0;
@@ -1148,7 +1153,7 @@ end
         end
     end
     
-%GET DIRECTION TOWARDS GOAL
+    %GET DIRECTION TOWARDS GOAL
     function [Direction,Dist] = getDir(val,goal)
         Direction = ones(size(val));
         if isnumeric(goal)            
@@ -1207,3 +1212,19 @@ end
     end
     
 end
+%{
+    analogRead
+    analogWrite
+    CheckCal
+    digitalWrite
+    EmStop
+    GetPlotConfig
+    GetRobotConfig
+    ImproperPinValues
+    map
+    OutofRange
+    RadCheck
+    Status
+    stlReadBinary
+    Update
+%}
